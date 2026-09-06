@@ -426,10 +426,23 @@ button:disabled,
   border-radius: 8px;
 }
 
-/* Modern scrollbar — باریک و بی‌صدا؛ فقط هنگام hover رنگ می‌گیرد */
+/* Hide vertical scrollbar chrome without disabling scrolling.
+   Horizontal table scrollbars keep their existing height. */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 0;
   height: 6px;
+}
+
+/* Firefox has no axis-specific scrollbar sizing. Limit its fallback to
+   the document and vertical scroll containers, leaving horizontal tables alone. */
+@supports not selector(::-webkit-scrollbar) {
+  html,
+  body,
+  textarea,
+  [class*="overflow-y-"],
+  .overflow-auto {
+    scrollbar-width: none;
+  }
 }
 
 ::-webkit-scrollbar-track {
