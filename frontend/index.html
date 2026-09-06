@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NafasHR — سامانه ارزیابی عملکرد نفس زیست فارمد" />
+    <!-- رنگ پوستهٔ مرورگر و آیکن باید همان قرمز برند باشد؛ فیروزه‌ای/بنفشِ
+         قبلی از قالب اولیه مانده بود و با هیچ‌جای محصول نمی‌خواند. -->
+    <meta name="theme-color" content="#b61615" />
+    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+    <!-- PWA (P2-04): قابل نصب روی موبایل، تا مسئول واحدِ سرِ خط تولید و
+         مدیری که بین دو جلسه است مجبور نباشند نشانی را به خاطر بسپارند. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="NafasHR" />
+    <title>NafasHR — سامانه ارزیابی عملکرد</title>
+    <!-- تم پیش از اولین رنگ‌آمیزی تعیین می‌شود.
+         اگر منتظر بارگذاری React بمانیم، کاربرِ تم شب یک لحظه صفحهٔ سفید
+         می‌بیند و بعد سرمه‌ای — همان «پرش» که آدم را از یک تم تیره بیزار می‌کند.
+         عمداً inline و همگام است؛ همین یک کار را می‌کند و منطقش در
+         `src/ui/theme.ts` تکرار شده که مرجع است. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("nafas-hr:theme");
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" &&
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#0b0e17" : "#b61615");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

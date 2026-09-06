@@ -1,0 +1,40 @@
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+# فایل .env کنار docker-compose.yml (کپی‌شده از .env.production.example) رازهای
+# واقعی استقرار را دارد — نمونه‌های *.example عمداً استثنا شده‌اند.
+.env
+!*.example
+backend/*.egg-info/
+backend/.pytest_cache/
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+*.pyc
+
+# Local environments, caches, and runtime artifacts
+.venv*/
+**/.venv*/
+.ruff_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+.local-run/
+.claude/
+*.log
+*.tsbuildinfo
+coverage/
+**/coverage/
+
+# Local secrets and database backups
+.env.*
+**/.env.*
+!*.example
+!**/*.example
+backups/
+*.dump
+*.backup
+*.sqlite
+*.sqlite3
+*.pem
+*.key

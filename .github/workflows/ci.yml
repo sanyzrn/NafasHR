@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    # تغییرِ فقط-مستندات، کل CI را روشن می‌کرد. سوئیت بک‌اند حدود ۵ دقیقه طول
+    # می‌کشد و یک ویرایش در README هیچ‌کدامش را لازم ندارد.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
+
+# بزرگ‌ترین صرفه‌جویی، و دلیلش هم ساده است: هر push روی یک شاخه، اجرای قبلیِ
+# همان شاخه را *لغو نمی‌کرد*. یعنی سه بار push پشت سر هم یعنی سه اجرای کامل که
+# دو تایش نتیجه‌اش را کسی نمی‌بیند و همچنان دقیقه می‌سوزاند.
+#
+# `main` عمداً استثناست: آن‌جا هر کامیت باید نتیجهٔ خودش را داشته باشد، وگرنه
+# تاریخچهٔ سبز/قرمز شاخهٔ اصلی سوراخ می‌شود.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dbspulse
+          POSTGRES_PASSWORD: dbspulse_dev_password
+          POSTGRES_DB: dbspulse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dbspulse -d dbspulse_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://dbspulse:dbspulse_dev_password@localhost:5432/dbspulse_test
+      ENVIRONMENT: development
+      JWT_SECRET_KEY: ci-test-secret-key-not-for-production
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          # بدون کش، هر اجرا کل وابستگی‌ها را دوباره دانلود و بیلد می‌کرد —
+          # psycopg و weasyprint و argon2-cffi سبک نیستند.
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

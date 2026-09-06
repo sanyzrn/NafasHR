@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<style>
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("fonts/Vazirmatn-Regular.woff2") format("woff2");
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("fonts/Vazirmatn-Bold.woff2") format("woff2");
+    font-weight: 700;
+  }
+  @page { size: A4; margin: 18mm 14mm; }
+  body { font-family: "Vazirmatn", "Tahoma", sans-serif; font-size: 12px; color: #1a1a1d; }
+  h1 { font-size: 18px; margin: 0 0 4px; text-align: center; }
+  h2 { font-size: 14px; margin: 16px 0 6px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  .meta { display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
+  .meta div { width: 32%; margin-bottom: 4px; }
+  .meta b { display: block; color: #666; font-size: 10px; }
+  /* table-layout: fixed عمدی است، و مسئله‌ای که حل می‌کند فقط زیبایی نیست.
+     با چیدمان خودکار (پیش‌فرض)، پهنای ستون‌ها از روی محتوا حساب می‌شود — و وقتی
+     جدول بین دو صفحه می‌شکند، هر تکه محتوای خودش را دارد، پس هر تکه پهنای
+     متفاوتی می‌گیرد. در بدترین حالت، تکه‌ای که فقط یک ردیف در انتهای صفحه دارد
+     ستون «شرح» را تا عرض یک نویسه جمع می‌کند و متن عمودی می‌شکند؛ همان چیزی که
+     در گزارش دیده شد. با پهنای ثابت، هر تکه دقیقاً همان ستون‌ها را دارد. */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
+  th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: right; font-size: 11px; }
+  th { background: #f4f4f5; }
+  /* سرستون روی هر صفحهٔ ادامه تکرار شود؛ جدولی که سرستونش را جا گذاشته، ستون
+     «امتیاز» و «شواهد» را از هم قابل‌تشخیص نمی‌گذارد. */
+  thead { display: table-header-group; }
+  /* یک ردیف نباید بین دو صفحه نصف شود. */
+  tr { break-inside: avoid; }
+  /* با پهنای ثابت، یک واژهٔ بلندِ بی‌فاصله (مسیر فایل، کد) از ستون بیرون می‌زد
+     به‌جای اینکه بشکند. */
+  td { overflow-wrap: anywhere; }
+  .scores { display: flex; gap: 10px; margin: 10px 0; }
+  .scores div { flex: 1; text-align: center; border: 1px solid #ddd; border-radius: 6px; padding: 8px; }
+  .scores b { display: block; font-size: 16px; }
+  .hint { font-size: 10px; color: #666; margin: -4px 0 8px; line-height: 1.7; }
+  .recommendation { background: #fdf4e3; border: 1px solid #f0dca0; padding: 8px; border-radius: 6px; margin-bottom: 10px; }
+  .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+  .signatures div { width: 22%; text-align: center; border-top: 1px solid #333; padding-top: 6px; font-size: 11px; }
+  .verify { display: flex; align-items: center; gap: 10px; margin-top: 24px; border-top: 1px dashed #ccc; padding-top: 10px; }
+  .verify img { width: 72px; height: 72px; }
+  .verify-text { font-size: 10px; color: #555; line-height: 1.6; }
+  .verify-text b { color: #1a1a1d; font-size: 11px; }
+</style>
+</head>
+<body>
+  <h1>خلاصه ارزیابی عملکرد — {{ snapshot.evaluation_code }}</h1>
+
+  <div class="meta">
+    <div><b>نام و نام خانوادگی</b>{{ snapshot.personnel.full_name }}</div>
+    <div><b>کد پرسنلی</b>{{ snapshot.personnel.personnel_code }}</div>
+    <div><b>عنوان شغلی</b>{{ snapshot.personnel.job_title }}</div>
+    <div><b>واحد سازمانی</b>{{ snapshot.personnel.org_unit }}</div>
+    <div><b>ارزیاب ({{ snapshot.evaluator.role_label }})</b>{{ snapshot.evaluator.display_name or snapshot.evaluator.username or '—' }}</div>
+    <div><b>تاریخ شروع ارزیابی</b>{{ snapshot.evaluation_started_at | jalali }}</div>
+    <div><b>تاریخ نهایی‌شدن</b>{{ snapshot.finalized_at | jalali }}</div>
+  </div>
+
+  <div class="scores">
+    <div><span>امتیاز عمومی</span><b>{{ snapshot.general_score_pct }}٪</b></div>
+    <div><span>امتیاز تخصصی</span><b>{{ snapshot.specialized_score_pct }}٪</b></div>
+    {# امتیاز ویژه فقط وقتی چاپ می‌شود که واقعاً داده شده باشد؛ در snapshot های
+       نسخهٔ ۱ این کلید اصلاً وجود ندارد و همین شرط هر دو حالت را پوشش می‌دهد. #}
+    {% if snapshot.bonus_points %}
+    <div><span>امتیاز فرم</span><b>{{ snapshot.base_weighted_pct }}٪</b></div>
+    <div><span>امتیاز ویژه</span><b>+{{ snapshot.bonus_points }}</b></div>
+    {% endif %}
+    <div><span>امتیاز نهایی وزنی</span><b>{{ snapshot.final_weighted_pct }}٪</b></div>
+  </div>
+
+  {% if snapshot.bonus_points %}
+  {# عددِ امتیاز ویژه بدون دلیلش، در سندی که مبنای تصمیم تمدید قرارداد است،
+     یک تعدیل بی‌توضیح می‌ماند. #}
+  <div class="recommendation">دلیل امتیاز ویژه: {{ snapshot.bonus_reason }}</div>
+  {% endif %}
+
+  {% if snapshot.single_decider %}
+  {# سند نباید دو بررسی مستقل را ادعا کند وقتی یک نفر هر دو را انجام داده. #}
+  <div class="recommendation">
+    توجه: در این پرونده نمره‌دهندهٔ اول و تأییدکنندهٔ نهایی یک نفر بوده‌اند
+    (این فرد مستقیماً زیر نظر مدیرعامل کار می‌کند).
+  </div>
+  {% endif %}
+
+  <div class="recommendation">نتیجه پیشنهادی: {{ snapshot.recommendation }}</div>
+
+  <h2>شاخص‌های عمومی</h2>
+  <table>
+    <colgroup>
+      <!-- نسبت‌ها از روی محتوای واقعی انتخاب شده‌اند: «شرح» همیشه یک جملهٔ کامل
+           است و «شواهد» در بیشتر ردیف‌ها خالی (فقط امتیاز ۱ و ۵ شواهد اجباری
+           دارند). دادنِ سهم مساوی به این دو، شرح را بی‌دلیل سه‌خطی می‌کرد. -->
+      <col style="width: 20%" />
+      <col style="width: 58%" />
+      <col style="width: 7%" />
+      <col style="width: 15%" />
+    </colgroup>
+    <thead><tr><th>دسته</th><th>شرح</th><th>امتیاز</th><th>شواهد</th></tr></thead>
+    <tbody>
+      {% for s in snapshot.scores if s.section == 'general' %}
+      <tr><td>{{ s.category }}</td><td>{{ s.description }}</td><td>{{ s.score }}</td><td>{{ s.evidence_text or '—' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>شاخص‌های تخصصی</h2>
+  <table>
+    <colgroup>
+      <!-- نسبت‌ها از روی محتوای واقعی انتخاب شده‌اند: «شرح» همیشه یک جملهٔ کامل
+           است و «شواهد» در بیشتر ردیف‌ها خالی (فقط امتیاز ۱ و ۵ شواهد اجباری
+           دارند). دادنِ سهم مساوی به این دو، شرح را بی‌دلیل سه‌خطی می‌کرد. -->
+      <col style="width: 20%" />
+      <col style="width: 58%" />
+      <col style="width: 7%" />
+      <col style="width: 15%" />
+    </colgroup>
+    <thead><tr><th>دسته</th><th>شرح</th><th>امتیاز</th><th>شواهد</th></tr></thead>
+    <tbody>
+      {% for s in snapshot.scores if s.section == 'specialized' %}
+      <tr><td>{{ s.category }}</td><td>{{ s.description }}</td><td>{{ s.score }}</td><td>{{ s.evidence_text or '—' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if snapshot.evaluator_comment %}
+  <h2>نظر کلی ارزیاب</h2>
+  <p>{{ snapshot.evaluator_comment }}</p>
+  {% endif %}
+
+  {# برگهٔ مقایسه — دیدگاه خودِ فرد کنار نمرهٔ ارزیاب.
+
+     فقط وقتی چاپ می‌شود که خودارزیابی ثبت شده باشد (snapshot نسخهٔ ۴ به بالا).
+     در snapshot های قدیمی‌تر این کلید اصلاً نیست و بخش بی‌صدا کنار می‌رود —
+     همان قاعده‌ای که برای امتیاز ویژه هم رعایت شده.
+
+     ردیف‌ها از پیش بر اساس بزرگیِ اختلاف مرتب شده‌اند: جایی که فرد ۵ داده و
+     ارزیاب ۲، همان جایی است که خواندنش ارزش دارد. #}
+  {% if snapshot.self_assessment %}
+  <h2>مقایسهٔ خودارزیابی و ارزیابی مسئول مستقیم</h2>
+  <p class="hint">
+    امتیازهای ستون «خود فرد» در محاسبهٔ نتیجه نقشی ندارند؛ فقط برای دیدن تفاوت
+    دیدگاه‌ها آمده‌اند. ردیف‌ها با بیشترین اختلاف در بالا.
+  </p>
+  <table>
+    <colgroup>
+      <col style="width: 20%" />
+      <col style="width: 44%" />
+      <col style="width: 10%" />
+      <col style="width: 12%" />
+      <col style="width: 14%" />
+    </colgroup>
+    <thead>
+      <tr>
+        <th>دسته</th><th>شرح</th><th>خود فرد</th><th>مسئول مستقیم</th><th>اختلاف</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in snapshot.self_assessment.rows %}
+      <tr>
+        <td>{{ row.category }}</td>
+        <td>{{ row.description }}</td>
+        <td>{{ row.self_score }}</td>
+        <td>{{ row.evaluator_score if row.evaluator_score is not none else 'ثبت نشده' }}</td>
+        <td>{{ '%+d'|format(row.gap) if row.gap is not none else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if snapshot.self_assessment.note %}
+  <div class="recommendation">دستاورد کلی از نگاه خود فرد: {{ snapshot.self_assessment.note }}</div>
+  {% endif %}
+  {% endif %}
+
+  {% if snapshot.comments %}
+  <h2>کامنت‌های مراحل بررسی</h2>
+  <table>
+    <colgroup>
+      <col style="width: 20%" />
+      <col style="width: 80%" />
+    </colgroup>
+    <thead><tr><th>مرحله</th><th>متن</th></tr></thead>
+    <tbody>
+      {% for c in snapshot.comments %}
+      <tr><td>{{ c.stage }}</td><td>{{ c.comment_text }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {# مسیر «مدیر»: معاونت نمره‌دهنده اول است و مرحله مسئول واحد/HR وجود ندارد #}
+  {% set manager_path = snapshot.evaluator.role_label == 'معاونت' %}
+  <div class="signatures">
+    {% if not manager_path %}
+    <div>امضای مسئول واحد</div>
+    <div>امضای منابع انسانی</div>
+    {% endif %}
+    <div>امضای معاونت</div>
+    <div>امضای مدیرعامل</div>
+  </div>
+
+  {% if verify_qr %}
+  <div class="verify">
+    <img src="{{ verify_qr }}" alt="QR تأیید اصالت" />
+    <div class="verify-text">
+      <b>تأیید اصالت سند</b>
+      برای بررسی اصالت این سند، کد QR را اسکن کنید یا به نشانی زیر مراجعه کنید:<br />
+      {{ verify_url }}
+    </div>
+  </div>
+  {% endif %}
+</body>
+</html>

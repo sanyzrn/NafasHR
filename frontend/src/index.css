@@ -1,0 +1,462 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NafasHR Design System — Red Accent / Grey Neutral Palette
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* Font */
+  --font-sans: "Vazirmatn", "Tahoma", "Segoe UI", sans-serif;
+
+  /* ── Primary Accent Spectrum (50–950) — anchored on brand red #B61615 ── */
+  --color-pulse-50: #fef3f3;
+  --color-pulse-100: #fde5e5;
+  --color-pulse-200: #facaca;
+  --color-pulse-300: #f49f9f;
+  --color-pulse-400: #eb4847;
+  --color-pulse-500: #db1a18;
+  --color-pulse-600: #b61615;
+  --color-pulse-700: #911110;
+  --color-pulse-800: #760f0f;
+  --color-pulse-900: #5f0f0e;
+  --color-pulse-950: #360a0a;
+
+  /* ── Neutral Grey Scale (used for gradient endpoints / secondary accents) ── */
+  --color-pulse-violet-50: #f9fafb;
+  --color-pulse-violet-100: #f3f4f6;
+  --color-pulse-violet-200: #e5e7eb;
+  --color-pulse-violet-300: #d1d5db;
+  --color-pulse-violet-400: #9ca3af;
+  --color-pulse-violet-500: #6b7280;
+  --color-pulse-violet-600: #4b5563;
+  --color-pulse-violet-700: #374151;
+  --color-pulse-violet-800: #1f2937;
+  --color-pulse-violet-900: #111827;
+
+  /* ── Page Background (warm cream, replaces plain cool grey) ── */
+  --color-cream-50: #edebe6;
+
+  /* ── Dark Surface (charcoal) — hero/emphasis cards on the light cream bg ── */
+  --color-charcoal-800: #363a40;
+  --color-charcoal-900: #2a2d31;
+
+  /* ── Shadows ── */
+  /* `--shadow-card` حذف شد: کارت‌های صفحه با مرز مشخص می‌شوند، نه با سایه.
+     سایهٔ ملایمِ زیر هر کارت روی زمینهٔ کِرِمی تقریباً دیده نمی‌شد ولی لبهٔ کارت
+     را مبهم می‌کرد، و در تم تیره اصلاً کار نمی‌کرد (سایهٔ سیاه روی زمینهٔ سیاه).
+     `--shadow-float` برای چیزهایی می‌ماند که واقعاً شناورند: مودال، منوی بازشو،
+     توست، و نوار کنشِ چسبیده به کف. */
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  /* ── Radius ── */
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+
+  /* ── Keyframe Animations ── */
+  --animate-shimmer: shimmer 2s infinite linear;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse-slow 3s ease-in-out infinite;
+  --animate-spin-slow: spin 4s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyframe Definitions
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CSS Custom Properties (non-@theme, available everywhere)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Shimmer background for skeleton loading */
+  --shimmer-bg: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  --shimmer-bg-size: 200% 100%;
+
+  /* رنگ‌هایی که نمودارها از جاوااسکریپت می‌خوانند (Recharts رنگ را به‌صورت
+     مقدار می‌گیرد، نه کلاس). یک منبع، تا نمودار و بقیهٔ صفحه با هم عوض شوند. */
+  --chart-series: #b61615;
+  --chart-grid: #eef0f4;
+  --chart-axis: #e5e7eb;
+  --chart-tick: #6b7280;
+  --chart-surface: #ffffff;
+
+  --plot-rail: #f1f2f4;
+  --plot-lead-strong: #f49f9f;
+  --plot-lead-soft: #facaca;
+  --plot-dot-strong: #b61615;
+  --plot-dot-soft: #eb4847;
+  --plot-dot-compare: #6b7280;
+
+  /* درخشش گوشهٔ صفحه (Layout) */
+  --page-glow: rgba(191, 191, 191, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   تم «شب» — دارک، ولی نه مشکی
+   ═══════════════════════════════════════════════════════════════════════
+
+   کل تم روی *بازتعریف متغیرها* بنا شده، نه روی افزودن `dark:` به ۱۴۰۰ کلاس در
+   ۶۰ فایل. Tailwind v4 هر رنگ را به‌صورت `var(--color-…)` بیرون می‌دهد
+   (`.bg-white{background-color:var(--color-white)}`)، پس عوض کردن همان متغیرها
+   زیر این انتخابگر، همهٔ صفحه‌ها را با هم می‌چرخاند.
+
+   چرا این راه و نه بازنویسی به توکن‌های معنایی: بازنویسی، کارِ درست‌تری است ولی
+   یعنی دست‌زدن به ۶۰ فایل و ۱۴۰۰ نقطه — و هر نقطه یک فرصت برای خراب‌کردنِ حالت
+   روشن است، همان حالتی که امروز کار می‌کند و همه از آن استفاده می‌کنند. این‌جا
+   حالت روشن *اثباتاً* دست‌نخورده می‌ماند، چون هیچ فایل کامپوننتی عوض نشده.
+
+   خاکستری‌ها بی‌طرف نیستند: کمی به آبی-بنفش متمایل‌اند تا «آسمانِ شب» بخوانند نه
+   «خاکسترِ مرده».
+   ═══════════════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* ── سطح‌ها ─────────────────────────────────────────────────────────
+     در تم تیره، سطح‌ها با *خط* از هم جدا می‌شوند نه با پرش روشنایی؛ فاصلهٔ
+     کارت از زمینه عمداً کم است (۱٫۱۸:۱) و مرزها کار جداسازی را می‌کنند. */
+  --color-cream-50: #0b0e17; /* زمینهٔ صفحه */
+
+  --color-gray-50: #20263a; /* پرکنندهٔ ملایم روی کارت */
+  --color-gray-100: #262c40; /* پرکننده + خط مو */
+  --color-gray-200: #313852; /* مرز */
+  --color-gray-300: #3f4763; /* مرز پررنگ‌تر */
+
+  /* ── متن ───────────────────────────────────────────────────────────
+     همه روی کارت (#1b2031) سنجیده شده‌اند: از ۴٫۸۵:۱ برای کم‌رنگ‌ترین تا
+     ۱۴٫۲۲:۱ برای عنوان‌ها. */
+  --color-gray-400: #858ca6; /* راهنمای کم‌رنگ */
+  --color-gray-500: #9ba2bb; /* ثانویه */
+  --color-gray-600: #b3b9cf;
+  --color-gray-700: #c8cde0; /* متن اصلی */
+  --color-gray-800: #dde1ee;
+  --color-gray-900: #eef0f8; /* عنوان */
+
+  /* کارتِ تیرهٔ «تأکید» روی زمینهٔ روشن، این‌جا باید *روشن‌تر* از کارت شود
+     وگرنه ناپدید می‌شود. متن سفیدش همچنان خواناست. */
+  --color-charcoal-800: #434b6b;
+  --color-charcoal-900: #39405c;
+
+  /* ── قرمزِ برند ────────────────────────────────────────────────────
+     ۵۰۰ و ۶۰۰ دست‌نخورده می‌مانند: دکمهٔ اصلی `bg-pulse-600 text-white` است و
+     سفید روی #b61615 در هر زمینه‌ای ۶٫۷۴:۱ می‌دهد. فقط ته‌رنگ‌ها (که پس‌زمینه‌اند)
+     و انتهای تیرهٔ طیف (که متن‌اند) عوض می‌شوند. */
+  --color-pulse-50: #2a1519;
+  --color-pulse-100: #3b1c20;
+  --color-pulse-200: #55262a;
+
+  /* ── رنگ‌های معنایی ────────────────────────────────────────────────
+     قاعده‌اش یکی است و در همه‌جا یکسان اعمال شده: پله‌های ۵۰ تا ۲۰۰ پس‌زمینهٔ
+     ته‌رنگی‌اند و تیره می‌شوند؛ پله‌های ۷۰۰ به بالا متنِ روی همان ته‌رنگ‌اند و
+     روشن می‌شوند؛ پله‌های میانی (۳۰۰ تا ۶۰۰) که پرکنندهٔ تو‌پر هستند —
+     نقطهٔ وضعیت، نوار سبز، پیام موفقیت — دست نمی‌خورند، وگرنه پیام موفقیتِ
+     سبزِ تو‌پر با متن سفید ناخوانا می‌شد. */
+  --color-green-50: #0f2a1c;
+  --color-green-100: #173d28;
+  --color-green-200: #1f5335;
+  --color-green-700: #86efac;
+  --color-green-800: #bbf7d0;
+  --color-green-900: #dcfce7;
+
+  --color-amber-50: #2c2110;
+  --color-amber-100: #3d2d13;
+  --color-amber-200: #55401a;
+  --color-amber-300: #6d5222;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+  --color-amber-900: #fef3c7;
+
+  --color-red-50: #2a1519;
+  --color-red-100: #3b1c20;
+  --color-red-200: #55262a;
+  --color-red-600: #fca5a5;
+  --color-red-700: #fecaca;
+
+  --color-blue-50: #101f36;
+  --color-blue-100: #16294a;
+  --color-blue-700: #93c5fd;
+
+  /* مرحلهٔ «تأییدشدهٔ منابع انسانی» تا امروز قرمزِ برند بود. قرمز در این رابط
+     معنای «کنش/هشدار» دارد؛ یک مرحلهٔ عادیِ میانی نباید آن معنا را بدزدد. */
+  --color-indigo-50: #171d3d;
+  --color-indigo-100: #1f2750;
+  --color-indigo-700: #a5b4fc;
+
+  /* ── سایه‌ها ───────────────────────────────────────────────────────
+     سایهٔ سیاه روی زمینهٔ سیاه دیده نمی‌شود. جایش را حلقهٔ نازکِ روشن می‌گیرد
+     که همان کار «این کارت جداست» را می‌کند. */
+  --shadow-float: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 16px 48px rgba(0, 0, 0, 0.55);
+
+  --shimmer-bg: linear-gradient(90deg, #20263a 25%, #2b3149 50%, #20263a 75%);
+
+  --chart-series: #f4756f;
+  --chart-grid: #262c40;
+  --chart-axis: #313852;
+  --chart-tick: #9ba2bb;
+  --chart-surface: #1b2031;
+
+  /* ریلِ نمودار باید از کارت روشن‌تر باشد وگرنه «مقدارِ خالی» دیده نمی‌شود و
+     میله‌ها انگار در هوا معلق‌اند. */
+  --plot-rail: #2b3149;
+  --plot-lead-strong: #7d2a2c;
+  --plot-lead-soft: #5a2124;
+  --plot-dot-strong: #f4756f;
+  --plot-dot-soft: #c94a48;
+  --plot-dot-compare: #9ba2bb;
+
+  /* روی سرمه‌ای، درخشش باید *روشن‌کننده* باشد نه خاکستریِ کدر */
+  --page-glow: rgba(120, 140, 200, 0.16);
+
+  /* ── سه خانوادهٔ رنگی که فقط در نشانِ امتیاز به کار می‌روند ──────────
+     همان قاعدهٔ بالا: ته‌رنگ تیره، متن روشن، پرکنندهٔ تو‌پر دست‌نخورده. */
+  --color-orange-50: #2e1a0f;
+  --color-orange-100: #402312;
+  --color-orange-700: #fdba74;
+
+  --color-lime-50: #1d2710;
+  --color-lime-100: #293616;
+  --color-lime-700: #bef264;
+
+  --color-emerald-50: #0f2a22;
+  --color-emerald-100: #163b2f;
+  --color-emerald-700: #6ee7b7;
+}
+
+/* دو چیزی که با بازتعریف متغیر حل نمی‌شوند، چون یک متغیر در دو نقش به کار رفته.
+   هرکدام یک قاعدهٔ صریح گرفته‌اند تا دلیلشان نوشته بماند. */
+
+/* `--color-white` هم `bg-white` است و هم `text-white`. اگر تیره‌اش کنیم، متنِ
+   سفیدِ روی دکمهٔ قرمز هم تیره می‌شود. پس فقط نقشِ «سطح» عوض می‌شود.
+
+   و «نقش سطح» فقط `.bg-white` خالی نیست — این همان جایی بود که تم تیره سوراخ
+   داشت. Tailwind برای هر واریانت یک انتخابگر *جدا* می‌سازد:
+
+       .bg-white          { background-color: var(--color-white) }   ← پوشش داشت
+       .focus\:bg-white:focus { background-color: var(--color-white) }   ← نداشت
+       .bg-white\/90      { background-color: #ffffffe6 }            ← نداشت
+
+   یعنی هر ورودی‌ای که `focus:bg-white` داشت (تقریباً همهٔ ورودی‌های سامانه) در
+   لحظهٔ فوکوس سفیدِ خالص می‌شد، در حالی که `text-gray-900` در تم تیره تقریباً
+   سفید است — متنِ سفید روی زمینهٔ سفید. کارتِ ورود هم `bg-white/90` بود، پس کل
+   کادر لاگین روشن می‌ماند.
+
+   شفافیت‌های کم (۱۰ تا ۲۰ درصد) عمداً این‌جا نیستند: آن‌ها پوششِ روشن روی سطحِ
+   *از قبل تیره* هستند (نشانِ نقش روی هدر قرمز، دکمهٔ بستن توست) و تیره‌کردنشان
+   خودِ چیزی را که باید دیده شود محو می‌کند. */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-white\/70,
+[data-theme="dark"] .bg-white\/80,
+[data-theme="dark"] .bg-white\/90,
+[data-theme="dark"] .bg-white\/95,
+[data-theme="dark"] .focus\:bg-white:focus,
+[data-theme="dark"] .hover\:bg-white:hover {
+  background-color: #1b2031;
+}
+
+/* مرزِ سفید هم همین حکم را دارد: `border-white/80` دور کارت ورود، در تم تیره یک
+   قاب سفیدِ درخشان می‌ساخت. */
+[data-theme="dark"] .border-white\/80 {
+  border-color: #313852;
+}
+
+/* `ring-white` دور نشانِ شمارندهٔ اعلان و نقطه‌های راهنمای نمودار، برای این است
+   که آن‌ها را از سطحِ پشتشان *جدا* کند — یعنی رنگش باید رنگ همان سطح باشد، نه
+   سفیدِ ثابت. در تم تیره، سفید ماندنش یک هالهٔ روشن دور نشان می‌ساخت. */
+[data-theme="dark"] .ring-white {
+  --tw-ring-color: #1b2031;
+}
+
+/* پردهٔ پشتِ مودال از `bg-gray-900/40` ساخته شده، و `--color-gray-900` در تم
+   تیره تقریباً سفید است (متنِ عنوان‌ها) — یعنی همان پرده‌ای که باید صفحه را
+   تیره کند، یک پردهٔ *سفید* روی صفحهٔ تیره می‌انداخت. پرده در هر تمی تیره است؛
+   نقشش «عقب‌بردن» است، نه پیروی از پالت. */
+[data-theme="dark"] .bg-gray-900\/40 {
+  background-color: rgb(0 0 0 / 0.6);
+}
+
+/* فهرستِ بازشوی `<select>` را سیستم‌عامل می‌کشد، نه CSS صفحه. `color-scheme: dark`
+   لازم است ولی کافی نیست: وقتی خودِ `<select>` پس‌زمینهٔ صریح دارد، کروم گزینه‌ها
+   را روشن می‌کشد — منوی بازشو سفید می‌ماند در حالی که بقیهٔ صفحه تیره است. */
+[data-theme="dark"] select option,
+[data-theme="dark"] select optgroup {
+  background-color: #1b2031;
+  color: var(--color-gray-900);
+}
+
+/* `pulse-600/700` هم پس‌زمینهٔ دکمه است (`bg-pulse-600`) و هم رنگ متنِ تأکیدی
+   (`text-pulse-600`). دکمه باید قرمزِ سیر بماند تا متن سفیدش خوانا باشد؛ متن
+   تأکیدی روی زمینهٔ سرمه‌ای باید روشن شود. */
+[data-theme="dark"] .text-pulse-600,
+[data-theme="dark"] .text-pulse-700,
+[data-theme="dark"] .text-pulse-800 {
+  color: #f4a3a2;
+}
+
+[data-theme="dark"] .hover\:text-pulse-700:hover,
+[data-theme="dark"] .hover\:text-pulse-800:hover {
+  color: #f8c5c4;
+}
+
+/* تصویرهایی که برای هر تم نسخهٔ خودشان را دارند (لوگوی توسعه‌دهنده).
+   با CSS انتخاب می‌شوند نه با جاوااسکریپت، تا هیچ لحظه‌ای نسخهٔ اشتباه دیده نشود. */
+.light-hidden {
+  display: none;
+}
+
+[data-theme="dark"] .dark-hidden {
+  display: none;
+}
+
+[data-theme="dark"] .light-hidden {
+  display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Global Base Styles
+   ═══════════════════════════════════════════════════════════════════════ */
+
+html,
+body {
+  font-family: "Vazirmatn", "Tahoma", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  /* از متغیر خوانده می‌شود تا تم «شب» فقط با عوض‌کردن همان متغیر، زمینهٔ صفحه
+     را هم بچرخاند — بدنهٔ بی‌رنگ یعنی متنِ روشن روی زمینهٔ روشن. */
+  background-color: var(--color-cream-50);
+  color: var(--color-gray-900);
+  transition: background-color 200ms ease;
+}
+
+/* اسکرولِ لینک‌های درون‌صفحه‌ای نرم باشد؛ مدیای «کاهش حرکت» پایین‌تر آن را
+   برای کاربرانِ حساس خاموش می‌کند. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* انتخابِ متن با ته‌رنگِ برند — جزئیاتِ کوچکی است ولی در هر کپی/پیست حسِ
+   یکدست‌بودنِ سامانه را می‌رساند. */
+::selection {
+  background-color: rgba(182, 22, 21, 0.16);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Focus Outline — keyboard navigation only (no glow/ring)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* حلقهٔ فوکوس باید *دیده* شود، وگرنه فقط ادعای دسترس‌پذیری است.
+   `pulse-violet-400` روی سفید ۲٫۵۴:۱ و روی زمینهٔ کرمی برنامه ۲٫۱۳:۱ بود —
+   هر دو زیر حداقلِ ۳:۱ برای عناصر غیرمتنی. `500` آن را به ۴٫۰۶:۱ روی همان
+   زمینهٔ کرمی می‌رساند.
+   خاکستری می‌ماند و قرمز نمی‌شود: قرمزِ برند رنگِ «کنش اصلی» است و فوکوس یک
+   حالت است نه یک معنا. */
+:focus-visible {
+  outline: 2px solid var(--color-pulse-violet-500);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* فیلدهای متنی خودشان با تغییر رنگ border فوکوس را نشان می‌دهند (مثل UI.html)؛
+   اگر روی آن‌ها هم outline پیش‌فرض بالا اضافه شود، دو خط دور فیلد دیده می‌شود. */
+/* ورودی‌ها outline سراسری را خاموش می‌کنند و به‌جایش مرزشان پررنگ می‌شود
+   (`focus:border-gray-900`). تا امروز آن مرز **قرمز** بود — یعنی فیلدِ فوکوس‌شده
+   دقیقاً شبیه فیلدِ نامعتبر (`border-red-400 bg-red-50`) دیده می‌شد. مرزِ قرمز
+   روی یک ورودی در هر رابطی یک معنا دارد: «این را اشتباه پر کرده‌ای». */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.field-trigger:focus-visible {
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Interactive Cursors — هر عنصر تعاملی باید نشانگر ماوس مناسب داشته باشد
+   ═══════════════════════════════════════════════════════════════════════ */
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="tab"]:not([aria-disabled="true"]),
+[role="slider"],
+label.switch,
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"],
+[role="tab"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.grip-handle {
+  cursor: grab;
+}
+.grip-handle:active {
+  cursor: grabbing;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Reusable Utility Classes
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Skeleton shimmer for loading states */
+.skeleton {
+  background: var(--shimmer-bg);
+  background-size: var(--shimmer-bg-size);
+  animation: var(--animate-shimmer);
+  border-radius: 8px;
+}
+
+/* Modern scrollbar — باریک و بی‌صدا؛ فقط هنگام hover رنگ می‌گیرد */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(182, 22, 21, 0.35);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   احترام به تنظیمِ «کاهش حرکت» سیستم‌عامل — برای کاربرانی که به انیمیشن حساس‌اند
+   (سرگیجه/حواس‌پرتی) همهٔ انیمیشن‌ها و ترنزیشن‌ها به حداقل می‌رسند. Framer Motion
+   هم این تنظیم را از طریق همین media query در سطح CSS محترم می‌شمارد.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
