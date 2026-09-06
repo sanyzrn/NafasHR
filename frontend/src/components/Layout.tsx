@@ -86,7 +86,7 @@ export function Layout() {
     /* پوستهٔ شناور: هیچ‌کدام از سه قاب (ناوبری، نوار بالا، پاصفحه) به لبهٔ
        پنجره نمی‌چسبند. فاصله را همین ظرف می‌دهد تا هر سه یک اندازه عقب
        بنشینند و گردیِ گوشه‌هایشان دیده شود. */
-    <div className="flex min-h-screen gap-3 bg-cream-50 px-3 pb-3 lg:h-dvh lg:min-h-0 lg:gap-4 lg:overflow-hidden lg:p-6">
+    <div className="flex min-h-screen gap-3 bg-cream-50 px-3 pb-3 lg:h-dvh lg:min-h-0 lg:gap-4 lg:overflow-hidden lg:p-12">
       {/* پرش به محتوای اصلی: کاربر کیبورد/screen reader مجبور نیست هر بار کل
           ناوبری را Tab بزند تا به محتوای صفحه برسد */}
       <a
