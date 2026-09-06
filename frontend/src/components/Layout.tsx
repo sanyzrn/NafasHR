@@ -86,7 +86,7 @@ export function Layout() {
     /* پوستهٔ شناور: هیچ‌کدام از سه قاب (ناوبری، نوار بالا، پاصفحه) به لبهٔ
        پنجره نمی‌چسبند. فاصله را همین ظرف می‌دهد تا هر سه یک اندازه عقب
        بنشینند و گردیِ گوشه‌هایشان دیده شود. */
-    <div className="flex min-h-screen gap-3 bg-cream-50 px-3 pb-3 lg:h-dvh lg:min-h-0 lg:gap-4 lg:overflow-hidden lg:px-4 lg:pb-4">
+    <div className="flex min-h-screen gap-3 bg-cream-50 px-3 pb-3 lg:h-dvh lg:min-h-0 lg:gap-4 lg:overflow-hidden lg:p-6">
       {/* پرش به محتوای اصلی: کاربر کیبورد/screen reader مجبور نیست هر بار کل
           ناوبری را Tab بزند تا به محتوای صفحه برسد */}
       <a
@@ -99,7 +99,7 @@ export function Layout() {
       {/* در دسکتاپ هر دو ستون فاصلهٔ یکسانی از بالا و پایین دارند؛
           محتوای اصلی و فهرست منو مستقل اسکرول می‌شوند. */}
       <aside
-        className={`mt-4 hidden h-[calc(100dvh-2rem)] shrink-0 transition-[width] duration-200 lg:block ${
+        className={`hidden shrink-0 transition-[width] duration-200 lg:block lg:h-full ${
           collapsed ? "w-16" : "w-72"
         }`}
       >
@@ -145,7 +145,7 @@ export function Layout() {
             نوار هم شناور است، ولی محتوایی که هنگام اسکرول زیرش رد می‌شود نباید
             از فاصلهٔ بالای آن پیدا باشد. پس خودِ نوار گرد و جداست و یک لایهٔ
             هم‌رنگِ صفحه پشتش تا لبهٔ بالا کشیده می‌شود. */}
-        <div className="sticky top-0 z-30 shrink-0 bg-cream-50 pt-3 lg:pt-4">
+        <div className="sticky top-0 z-30 shrink-0 bg-cream-50 pt-3 lg:pt-0">
           <header className="flex h-14 items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 shadow-sm sm:px-6">
             <button
               type="button"
