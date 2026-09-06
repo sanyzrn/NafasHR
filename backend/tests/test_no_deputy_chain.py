@@ -104,8 +104,8 @@ def test_a_chain_with_a_deputy_still_has_to_go_through_them(client, db_session):
     assert db_session.get(EvaluationRecord, record_id).status is EvaluationStatus.hr_approved
 
 
-def test_both_middle_stages_empty_is_refused(client, db_session):
-    """اگر نه مسئول واحد باشد و نه معاونت، هیچ‌کس نمره نمی‌دهد."""
+def test_both_middle_stages_empty_assigns_scoring_to_ceo(client, db_session):
+    """در زنجیرهٔ مستقیم، مدیرعامل نمره می‌دهد و منابع انسانی نهایی می‌کند."""
     hr = make_user(db_session, "hr")
     ceo = make_user(db_session, "ceo", capabilities=[])
     personnel = make_personnel(db_session)
@@ -116,8 +116,14 @@ def test_both_middle_stages_empty_is_refused(client, db_session):
         json={"unit_supervisor_user_id": None, "deputy_user_id": None, "ceo_user_id": ceo.id},
         headers=auth_header(hr),
     )
-    assert response.status_code == 400, response.text
-    assert "نمره‌دهنده" in response.json()["detail"]
+    assert response.status_code == 200, response.text
+    assert response.json()["unit_supervisor_user_id"] is None
+    assert response.json()["deputy_user_id"] is None
+    assert response.json()["ceo_user_id"] == ceo.id
+
+    record_id = _run_to_hr_approved(client, db_session, hr, ceo, personnel)
+    db_session.expire_all()
+    assert db_session.get(EvaluationRecord, record_id).status is EvaluationStatus.finalized
 
 
 def test_hr_can_save_a_chain_without_a_deputy(client, db_session):

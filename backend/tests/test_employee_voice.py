@@ -383,23 +383,12 @@ def test_the_employee_can_submit_a_self_assessment_while_the_case_is_open(client
     assert current["state"] == "submitted"
 
 
-def test_every_role_except_deputy_and_ceo_can_self_assess_its_own_record(client, db_session):
-    """قاعده زنجیره‌محور است نه نقش‌محور: هر کسی که *موضوعِ* پرونده است.
-
-    `_case` پرونده را در `submitted` می‌گذارد و پنجرهٔ خودارزیابی آن‌جا بسته است،
-    پس اول باید به مرحلهٔ ثبت برگردد — وگرنه این تست به‌جای نقش، پنجره را می‌سنجد
-    و برای همهٔ نقش‌ها یکسان رد می‌شود.
-    """
-    for role in (UserRole.hr, UserRole.unit_supervisor, UserRole.support):
+def test_eligible_staff_roles_can_self_assess_their_own_record(client, db_session):
+    """منابع انسانی و مسئول واحد نیز برای قرارداد خودشان خودارزیابی دارند."""
+    for role in (UserRole.hr, UserRole.unit_supervisor):
         case = _case(client, db_session, finalize=False)
         case["employee"].role = role
         db_session.commit()
-        client.post(
-            f"/api/evaluations/{case['id']}/return",
-            json={"reason": "بازگشت"},
-            headers=auth_header(case["hr"]),
-        )
-
         response = client.post(
             f"/api/me/evaluations/{case['id']}/self-assessment",
             json=_indicator_payload(db_session, 4),
@@ -413,6 +402,23 @@ def test_deputy_and_ceo_have_no_self_assessment_access(client, db_session):
     for actor in ("dep", "ceo"):
         response = client.get("/api/me/evaluations/open", headers=auth_header(case[actor]))
         assert response.status_code == 403, actor
+
+
+def test_support_cannot_submit_its_own_self_assessment(client, db_session):
+    case = _case(client, db_session, finalize=False)
+    case["employee"].role = UserRole.support
+    db_session.commit()
+
+    response = client.post(
+        f"/api/me/evaluations/{case['id']}/self-assessment",
+        json=_indicator_payload(db_session, 4),
+        headers=auth_header(case["employee"]),
+    )
+    assert response.status_code == 403, response.text
+    current = client.get(
+        "/api/me/self-assessment/current", headers=auth_header(case["employee"])
+    )
+    assert current.status_code == 403, current.text
 
 
 def test_hr_cannot_invite_a_deputy_or_ceo_to_self_assess(client, db_session):

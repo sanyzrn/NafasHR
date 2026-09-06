@@ -389,10 +389,10 @@ def test_a_submitted_self_assessment_freezes_the_case_too(client, db_session, ch
     assert detail["indicator_ids"] == case_indicators
 
 
-def test_self_assessment_is_scored_against_the_case_not_todays_indicators(
+def test_unsubmitted_self_assessment_uses_current_indicators_even_with_a_pinned_case(
     client, db_session, chain
 ):
-    """شاخصی که جزو این پرونده نیست پذیرفته نمی‌شود — حتی اگر امروز فعال باشد."""
+    """نسخهٔ پروندهٔ ارزیاب، فرم مستقل و ثبت‌نشدهٔ قرارداد را قفل نمی‌کند."""
     employee = _employee_of(db_session, chain)
     record_id = _open_case_for(client, chain)
     # ارزیاب امتیاز می‌دهد تا پرونده به نسخهٔ خودش قفل شود
@@ -416,7 +416,15 @@ def test_self_assessment_is_scored_against_the_case_not_todays_indicators(
         headers=auth_header(chain["hr"]),
     ).json()["id"]
 
-    refused = client.post(
+    stale = client.post(
+        f"/api/me/evaluations/{record_id}/self-assessment",
+        json={"scores": [{"indicator_id": i, "score": 4} for i in case_indicators]},
+        headers=auth_header(employee),
+    )
+    assert stale.status_code == 400, stale.text
+    db_session.rollback()
+
+    submitted = client.post(
         f"/api/me/evaluations/{record_id}/self-assessment",
         json={
             "scores": [
@@ -425,16 +433,16 @@ def test_self_assessment_is_scored_against_the_case_not_todays_indicators(
         },
         headers=auth_header(employee),
     )
-    assert refused.status_code == 400
-    assert str(newcomer) in refused.json()["detail"]
+    assert submitted.status_code == 200, submitted.text
+    assert {row["indicator_id"] for row in submitted.json()["scores"]} == {*case_indicators, newcomer}
+    detail = client.get(
+        f"/api/evaluations/{record_id}", headers=auth_header(chain["sup"])
+    ).json()
+    assert detail["indicator_ids"] == case_indicators
 
 
-def test_a_retired_question_can_still_be_self_assessed(client, db_session, chain):
-    """و جهت مخالف: سؤالی که کنار گذاشته شده ولی هنوز جزو این پرونده است.
-
-    بدون این، کارمندِ پرونده‌ای که وسط کارش شاخصی بازنشسته شده، موقع ثبت
-    «شاخص معتبر نیست» می‌گرفت — همان خرابیِ مسیر ارزیاب، یک در آن‌طرف‌تر.
-    """
+def test_unsubmitted_self_assessment_rejects_a_retired_question(client, db_session, chain):
+    """فرم ثبت‌نشده به‌روز می‌شود، حتی اگر پروندهٔ ارزیاب شاخص قدیمی را داشته باشد."""
     employee = _employee_of(db_session, chain)
     record_id = _open_case_for(client, chain)
     client.put(
@@ -457,5 +465,16 @@ def test_a_retired_question_can_still_be_self_assessed(client, db_session, chain
         json={"scores": [{"indicator_id": i, "score": 4} for i in case_indicators]},
         headers=auth_header(employee),
     )
-    assert submitted.status_code == 200, submitted.text
-    assert len(submitted.json()["scores"]) == len(case_indicators)
+    assert submitted.status_code == 400, submitted.text
+    assert str(case_indicators[0]) in submitted.json()["detail"]
+    db_session.rollback()
+
+    current = client.get("/api/me/self-assessment/current", headers=auth_header(employee)).json()
+    assert case_indicators[0] not in current["indicator_ids"]
+    saved = client.post(
+        f"/api/me/evaluations/{record_id}/self-assessment",
+        json={"scores": [{"indicator_id": i, "score": 4} for i in current["indicator_ids"]]},
+        headers=auth_header(employee),
+    )
+    assert saved.status_code == 200, saved.text
+    assert {row["indicator_id"] for row in saved.json()["scores"]} == set(current["indicator_ids"])
