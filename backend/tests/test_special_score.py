@@ -218,7 +218,7 @@ def test_it_lands_in_the_audit_log_with_the_previous_value(client, db_session, o
     assert changes == {(None, 3), (3.0, 1)}
 
 
-def test_the_employee_sees_what_the_bonus_was_for(client, db_session, org):
+def test_the_employee_sees_what_the_bonus_was_for(employee_result_features_enabled, client, db_session, org):
     """عدد بدون دلیلش، از دید کسی که نمره‌اش را گرفته، یک تعدیل بی‌توضیح است."""
     record_id = _open_draft(client, db_session, org)
     _set_bonus(client, org["sup"], record_id, 2, "مدیریت بحران قطعی برق")

@@ -113,6 +113,37 @@ def no_cohort_suppression():
 
 
 @pytest.fixture()
+def employee_result_features_enabled(monkeypatch, db_session):
+    """Opt-in coverage of dormant result/objection logic, not deployment policy.
+
+    Production keeps these modules locked. Only tests explicitly requesting this
+    fixture simulate a future unlocked configuration to retain ownership, audit,
+    notification-isolation and scoring regressions. All other tests (especially
+    the lock-policy tests) exercise the real, locked module definitions.
+    """
+    from dataclasses import replace
+
+    from app.api.routers import administration
+    from app.core import modules
+    from app.core.modules import MODULES_BY_KEY
+    from app.models.module import ModuleSetting
+    from app.services import authorization
+
+    for key in (
+        "objections",
+        "employee_overview_cards",
+        "employee_evaluation_visibility",
+        "employee_result_acknowledgement",
+    ):
+        monkeypatch.setitem(MODULES_BY_KEY, key, replace(MODULES_BY_KEY[key], locked=False))
+        db_session.merge(ModuleSetting(key=key, enabled=True))
+    db_session.flush()
+    definitions = tuple(MODULES_BY_KEY[module.key] for module in modules.MODULES)
+    for consumer in (modules, authorization, administration):
+        monkeypatch.setattr(consumer, "MODULES", definitions)
+
+
+@pytest.fixture()
 def client(db_session):
     from app.db.session import get_db
     from app.main import app

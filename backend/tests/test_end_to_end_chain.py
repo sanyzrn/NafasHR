@@ -59,7 +59,9 @@ def _events(client, hr) -> list[str]:
     ]
 
 
-def test_the_whole_chain_holds_from_creation_to_finalisation(client, db_session, cast):
+def test_the_whole_chain_holds_from_creation_to_finalisation(
+    employee_result_features_enabled, client, db_session, cast
+):
     hr, sup, dep, ceo = cast["hr"], cast["sup"], cast["dep"], cast["ceo"]
     other_sup, other_dep = cast["other_sup"], cast["other_dep"]
     employee = cast["employee"]

@@ -86,7 +86,7 @@ def test_no_actor_of_one_case_hears_about_the_other(client, db_session):
             )
 
 
-def test_an_employee_only_ever_hears_about_their_own_record(client, db_session):
+def test_an_employee_only_ever_hears_about_their_own_record(employee_result_features_enabled, client, db_session):
     """کارمند حساس‌ترین حالت است: فقط باید نتیجهٔ پروندهٔ خودش را ببیند."""
     first = _isolated_chain(client, db_session, "واحد ج")
     second = _isolated_chain(client, db_session, "واحد د")

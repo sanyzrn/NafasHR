@@ -350,7 +350,7 @@ def _open_case_for(client, chain):
     ).json()["id"]
 
 
-def test_a_submitted_self_assessment_freezes_the_case_too(client, db_session, chain):
+def test_a_submitted_self_assessment_freezes_the_case_too(employee_result_features_enabled, client, db_session, chain):
     """«دست‌نخورده» دو نویسنده دارد، نه یکی.
 
     نسخهٔ اول این قاعده فقط امتیاز ارزیاب را می‌دید، پس پرونده‌ای که کارمند
@@ -390,7 +390,7 @@ def test_a_submitted_self_assessment_freezes_the_case_too(client, db_session, ch
 
 
 def test_unsubmitted_self_assessment_uses_current_indicators_even_with_a_pinned_case(
-    client, db_session, chain
+    employee_result_features_enabled, client, db_session, chain
 ):
     """نسخهٔ پروندهٔ ارزیاب، فرم مستقل و ثبت‌نشدهٔ قرارداد را قفل نمی‌کند."""
     employee = _employee_of(db_session, chain)
@@ -441,7 +441,9 @@ def test_unsubmitted_self_assessment_uses_current_indicators_even_with_a_pinned_
     assert detail["indicator_ids"] == case_indicators
 
 
-def test_unsubmitted_self_assessment_rejects_a_retired_question(client, db_session, chain):
+def test_unsubmitted_self_assessment_rejects_a_retired_question(
+    employee_result_features_enabled, client, db_session, chain
+):
     """فرم ثبت‌نشده به‌روز می‌شود، حتی اگر پروندهٔ ارزیاب شاخص قدیمی را داشته باشد."""
     employee = _employee_of(db_session, chain)
     record_id = _open_case_for(client, chain)

@@ -52,7 +52,7 @@ def _finalize_evaluation(client, db, hr, sup, dep, ceo, personnel) -> int:
     return evaluation_id
 
 
-def test_my_evaluations_only_own_finalized(client, db_session):
+def test_my_evaluations_only_own_finalized(employee_result_features_enabled, client, db_session):
     hr, sup, dep, ceo = _make_chain(db_session)
     mine = make_personnel(db_session, full_name="کارمند خودم")
     other = make_personnel(db_session, full_name="کارمند دیگر")
@@ -81,7 +81,7 @@ def test_my_evaluations_only_own_finalized(client, db_session):
     assert "scores" not in item and "evaluator_comment" not in item
 
 
-def test_employee_list_evaluations_no_leak(client, db_session):
+def test_employee_list_evaluations_no_leak(employee_result_features_enabled, client, db_session):
     """شاخه صریح employee در GET /api/evaluations — نباید در مسیر «HR همه را می‌بیند» بیفتد."""
     hr, sup, dep, ceo = _make_chain(db_session)
     mine = make_personnel(db_session, full_name="کارمند لیست")
@@ -113,7 +113,7 @@ def test_employee_list_evaluations_no_leak(client, db_session):
     ).status_code == 403
 
 
-def test_acknowledge_happy_path_with_audit_and_hr_notification(client, db_session):
+def test_acknowledge_happy_path_with_audit_and_hr_notification(employee_result_features_enabled, client, db_session):
     hr, sup, dep, ceo = _make_chain(db_session)
     personnel = make_personnel(db_session, full_name="رؤیت‌کننده")
     make_access(db_session, personnel, sup, dep, ceo)
@@ -153,7 +153,7 @@ def test_acknowledge_happy_path_with_audit_and_hr_notification(client, db_sessio
     assert r.status_code == 400
 
 
-def test_acknowledge_rejects_foreign_and_open_evaluations(client, db_session):
+def test_acknowledge_rejects_foreign_and_open_evaluations(employee_result_features_enabled, client, db_session):
     hr, sup, dep, ceo = _make_chain(db_session)
     mine = make_personnel(db_session, full_name="صاحب پرونده")
     other = make_personnel(db_session, full_name="پرونده غریبه")
@@ -206,7 +206,7 @@ def test_employee_user_requires_personnel_link(client, db_session):
     assert r.json()["personnel_id"] == personnel.id
 
 
-def test_finalize_notifies_employee(client, db_session):
+def test_finalize_notifies_employee(employee_result_features_enabled, client, db_session):
     hr, sup, dep, ceo = _make_chain(db_session)
     personnel = make_personnel(db_session, full_name="گیرنده ابلاغ")
     make_access(db_session, personnel, sup, dep, ceo)

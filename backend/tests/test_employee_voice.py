@@ -60,7 +60,7 @@ def _case(client, db_session, *, finalize: bool):
 # ───────────────────────── نمای وضعیتِ پروندهٔ در جریان
 
 
-def test_the_employee_can_see_that_a_case_about_them_is_open(client, db_session):
+def test_the_employee_can_see_that_a_case_about_them_is_open(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=False)
 
     r = client.get("/api/me/evaluations/open", headers=auth_header(case["employee"]))
@@ -73,7 +73,7 @@ def test_the_employee_can_see_that_a_case_about_them_is_open(client, db_session)
     assert rows[0]["stage_entered_at"]
 
 
-def test_the_status_view_leaks_no_scores(client, db_session):
+def test_the_status_view_leaks_no_scores(employee_result_features_enabled, client, db_session):
     """نمرهٔ پیش‌نویس هنوز تصمیم نیست؛ دیدنش حق فرد نیست و اشتباه هم هست."""
     case = _case(client, db_session, finalize=False)
 
@@ -83,7 +83,7 @@ def test_the_status_view_leaks_no_scores(client, db_session):
         assert leaked not in row, f"نمای وضعیت نباید {leaked} را نشان دهد"
 
 
-def test_the_status_view_shows_only_my_own_case(client, db_session):
+def test_the_status_view_shows_only_my_own_case(employee_result_features_enabled, client, db_session):
     mine = _case(client, db_session, finalize=False)
     other = _case(client, db_session, finalize=False)
 
@@ -93,7 +93,7 @@ def test_the_status_view_shows_only_my_own_case(client, db_session):
     assert other["code"] not in [r["evaluation_code"] for r in rows]
 
 
-def test_a_finalized_case_leaves_the_open_list(client, db_session):
+def test_a_finalized_case_leaves_the_open_list(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=True)
 
     assert client.get("/api/me/evaluations/open", headers=auth_header(case["employee"])).json() == []
@@ -145,7 +145,7 @@ def test_chain_roles_still_cannot_download_the_document(client, db_session):
 # ───────────────────────── اعتراض
 
 
-def test_the_employee_can_object_after_acknowledging(client, db_session):
+def test_the_employee_can_object_after_acknowledging(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=True)
     client.post(f"/api/me/evaluations/{case['id']}/acknowledge", headers=auth_header(case["employee"]))
 
@@ -160,7 +160,7 @@ def test_the_employee_can_object_after_acknowledging(client, db_session):
     assert "حضور و غیاب" in r.json()["objection_reason"]
 
 
-def test_objecting_requires_acknowledging_first(client, db_session):
+def test_objecting_requires_acknowledging_first(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=True)
 
     r = client.post(
@@ -181,7 +181,7 @@ def test_objecting_requires_acknowledging_first(client, db_session):
     assert all(item["objection_at"] is None for item in mine["items"])
 
 
-def test_the_objection_window_closes(client, db_session):
+def test_the_objection_window_closes(employee_result_features_enabled, client, db_session):
     """پرونده بالاخره باید قطعی شود؛ پنجرهٔ باز تا ابد یعنی هیچ نتیجه‌ای نهایی نیست."""
     case = _case(client, db_session, finalize=True)
     client.post(f"/api/me/evaluations/{case['id']}/acknowledge", headers=auth_header(case["employee"]))
@@ -200,7 +200,7 @@ def test_the_objection_window_closes(client, db_session):
     assert "مهلت" in r.json()["detail"]
 
 
-def test_only_one_objection_per_record(client, db_session):
+def test_only_one_objection_per_record(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=True)
     client.post(f"/api/me/evaluations/{case['id']}/acknowledge", headers=auth_header(case["employee"]))
     client.post(
@@ -218,7 +218,7 @@ def test_only_one_objection_per_record(client, db_session):
     assert again.status_code == 400
 
 
-def test_an_objection_notifies_hr_and_is_audited(client, db_session):
+def test_an_objection_notifies_hr_and_is_audited(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=True)
     client.post(f"/api/me/evaluations/{case['id']}/acknowledge", headers=auth_header(case["employee"]))
     client.post(
@@ -261,7 +261,7 @@ def test_the_objection_does_not_alter_the_result_or_the_document(client, db_sess
     assert pdf_after == pdf_before, "سند بایت‌به‌بایت باید پایدار بماند"
 
 
-def test_hr_resolves_the_objection_and_the_employee_is_told(client, db_session):
+def test_hr_resolves_the_objection_and_the_employee_is_told(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=True)
     client.post(f"/api/me/evaluations/{case['id']}/acknowledge", headers=auth_header(case["employee"]))
     client.post(
@@ -317,7 +317,7 @@ def test_resolving_requires_an_objection_and_happens_once(client, db_session):
     assert twice.status_code == 400
 
 
-def test_an_employee_cannot_object_to_someone_elses_record(client, db_session):
+def test_an_employee_cannot_object_to_someone_elses_record(employee_result_features_enabled, client, db_session):
     mine = _case(client, db_session, finalize=True)
     other = _case(client, db_session, finalize=True)
     client.post(f"/api/me/evaluations/{other['id']}/acknowledge", headers=auth_header(other["employee"]))
@@ -600,7 +600,7 @@ def test_hr_approval_does_not_close_the_contract_form(client, db_session):
     assert r.status_code == 200
 
 
-def test_the_open_case_no_longer_owns_the_self_assessment_window(client, db_session):
+def test_the_open_case_no_longer_owns_the_self_assessment_window(employee_result_features_enabled, client, db_session):
     case = _case(client, db_session, finalize=False)  # وضعیت: submitted
 
     closed = client.get("/api/me/evaluations/open", headers=auth_header(case["employee"])).json()

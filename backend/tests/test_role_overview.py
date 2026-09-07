@@ -71,7 +71,7 @@ def test_role_overview_is_scoped_per_role(client, db_session):
     assert ceo_cards["awaiting_me"] == 1
 
 
-def test_role_overview_for_employee(client, db_session):
+def test_role_overview_for_employee(employee_result_features_enabled, client, db_session):
     hr = make_user(db_session, "hr")
     sup = make_user(db_session, "unit_supervisor")
     dep = make_user(db_session, "deputy")

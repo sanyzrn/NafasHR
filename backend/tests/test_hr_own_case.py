@@ -149,7 +149,9 @@ def test_another_hr_user_handles_it_normally(client, hr_under_review):
     assert response.status_code == 200, response.text
 
 
-def test_they_still_see_their_own_result_through_their_own_panel(client, db_session, hr_under_review):
+def test_they_still_see_their_own_result_through_their_own_panel(
+    employee_result_features_enabled, client, db_session, hr_under_review
+):
     """گارد دربارهٔ *رسیدگی* است، نه دربارهٔ حقِ دیدنِ نتیجهٔ خود.
 
     مسیر کارمند جداست و فقط نتیجهٔ نهایی را می‌دهد — بدون شواهد و کامنت‌های زنجیره.
