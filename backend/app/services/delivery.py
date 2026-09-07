@@ -24,6 +24,7 @@ from app.models.notification import Notification
 from app.models.notification_delivery import NotificationDelivery
 from app.models.user import User
 from app.services import channels
+from app.services.authorization import is_module_enabled
 from app.services.channels import DeliveryError, Message
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,8 @@ def enqueue_for(db: Session, notification: Notification) -> int:
     سامانه دقیقاً همان چیزی می‌ماند که بود.
     """
     if notification.type not in OUTBOUND_TYPES:
+        return 0
+    if notification.type == "evaluation_finalized_self" and not is_module_enabled(db, "employee_evaluation_visibility"):
         return 0
 
     configured = {channel.kind for channel in channels.available()}
@@ -152,6 +155,14 @@ def run_delivery_sweep(db: Session, *, limit: int | None = None) -> dict[str, in
         if notification is None:
             delivery.status = DeliveryStatus.abandoned
             delivery.last_error = "اعلان مرتبط دیگر وجود ندارد"
+            outcome["abandoned"] += 1
+            continue
+
+        if notification.type == "evaluation_finalized_self" and not is_module_enabled(
+            db, "employee_evaluation_visibility"
+        ):
+            delivery.status = DeliveryStatus.abandoned
+            delivery.last_error = "نمایش نتیجه برای کارمند غیرفعال است"
             outcome["abandoned"] += 1
             continue
 

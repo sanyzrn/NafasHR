@@ -135,6 +135,7 @@ export function useEvaluationDetail(id: number | null) {
 
 export interface PersonnelListParams {
   accessible_to_me?: boolean;
+  direct_reports_only?: boolean;
   q?: string;
   /** فیلترهای پیشرفتهٔ HR — همگی اختیاری و ترکیب‌پذیر */
   status?: "active" | "inactive";

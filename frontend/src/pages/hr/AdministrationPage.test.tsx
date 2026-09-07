@@ -83,7 +83,12 @@ function mockGets() {
     if (url === "/administration/policy") return { data: { fields: POLICY_FIELDS } } as never;
     if (url === "/administration/integrations")
       return { data: { fields: [], secrets: [], active_channels: [] } } as never;
-    if (url === "/administration/modules") return { data: [] } as never;
+    if (url === "/administration/modules") return { data: [
+      { key: "objections", label: "اعتراض به نتیجه", enabled: false, locked: true },
+      { key: "employee_overview_cards", label: "کارت‌های خلاصهٔ کارمند", enabled: false, locked: true },
+      { key: "employee_evaluation_visibility", label: "نتیجه و وضعیت پروندهٔ کارمند", enabled: false, locked: true },
+      { key: "employee_result_acknowledgement", label: "ثبت رؤیت نتیجه توسط کارمند", enabled: false, locked: true },
+    ] } as never;
     if (url === "/administration/separation")
       return { data: { separated: true, overlapping_users: [] } } as never;
     if (url === "/org-units") return { data: [] } as never;
@@ -97,6 +102,17 @@ async function openTab(name: string) {
 }
 
 describe("تب‌های مدیریت سامانه", () => {
+  it("چهار بخش قفل‌شده امکان فعال‌سازی ندارند", async () => {
+    mockGets();
+    renderPage();
+    await openTab("بخش‌های سامانه");
+    const switches = await screen.findAllByRole("switch");
+    expect(switches).toHaveLength(4);
+    for (const control of switches) {
+      expect(control).toBeDisabled();
+      expect(control).toHaveAttribute("aria-checked", "false");
+    }
+  });
   it("بخش‌ها را در تب‌های جداگانه نشان می‌دهد و فقط تب انتخاب‌شده را نمایش می‌دهد", async () => {
     mockGets();
     renderPage();

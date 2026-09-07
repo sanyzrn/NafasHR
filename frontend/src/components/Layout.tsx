@@ -7,6 +7,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { Footer } from "./Footer";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { useMediaQuery } from "../ui/useMediaQuery";
 import { ProfileMenu } from "./ProfileMenu";
 import { Sidebar } from "./Sidebar";
 import { navItemsFor } from "./nav";
@@ -23,6 +24,7 @@ function readCollapsed(): boolean {
 }
 
 export function Layout() {
+  const desktop = useMediaQuery("(min-width: 1024px)");
   const { user, logout } = useAuth();
   const { can, moduleEnabled } = usePermissions();
   const navigate = useNavigate();
@@ -108,7 +110,7 @@ export function Layout() {
 
       {/* کشوی موبایل */}
       <AnimatePresence>
-        {drawerOpen && (
+        {drawerOpen && !desktop && (
           <>
             <motion.div
               key="scrim"
@@ -132,6 +134,7 @@ export function Layout() {
                 collapsed={false}
                 onToggleCollapse={() => setDrawerOpen(false)}
                 onNavigate={() => setDrawerOpen(false)}
+                mobile
               />
             </motion.aside>
           </>
@@ -163,9 +166,7 @@ export function Layout() {
             </p>
 
             <div className="flex shrink-0 items-center gap-1">
-              <span className="hidden sm:inline-flex">
-                <ThemeToggle />
-              </span>
+              {desktop && <ThemeToggle />}
               <NotificationBell />
               <ProfileMenu user={user} onLogout={handleLogout} />
             </div>

@@ -34,21 +34,29 @@ function read(key: string): FormDraft {
   }
 }
 
-export function useLocalDraft(key: string): [FormDraft, (next: FormDraft) => void] {
-  const [draft, setDraft] = useState<FormDraft>(() => read(key));
+export function useLocalDraft(key: string): [FormDraft, (next: FormDraft) => void, boolean] {
+  const [state, setState] = useState(() => ({ key, draft: read(key), storageFailed: false }));
+  // A different contract/person must never inherit the previous form's answers.
+  let current = state;
+  if (state.key !== key) {
+    current = { key, draft: read(key), storageFailed: false };
+    setState(current);
+  }
 
   const update = useCallback(
     (next: FormDraft) => {
-      setDraft(next);
+      let storageFailed = false;
       try {
         window.localStorage.setItem(key, JSON.stringify(next));
       } catch {
+        storageFailed = true;
         // نوشتن نشد (حافظه پر یا ذخیره‌سازی مسدود) — فرم در حافظهٔ صفحه سالم
         // می‌ماند و فقط تضمینِ «بعد از رفرش هست» را از دست می‌دهیم.
       }
+      setState({ key, draft: next, storageFailed });
     },
     [key]
   );
 
-  return [draft, update];
+  return [current.draft, update, current.storageFailed];
 }

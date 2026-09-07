@@ -49,6 +49,7 @@ class ModuleState(BaseModel):
     label: str
     description: str
     enabled: bool
+    locked: bool = False
 
 
 class ModuleToggle(BaseModel):

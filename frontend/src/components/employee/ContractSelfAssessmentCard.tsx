@@ -91,7 +91,7 @@ function ContractSelfAssessmentForm({
   }, [allIndicators, item.indicator_ids]);
 
   const draftKey = `nafas-hr:self-assessment:${item.personnel_id}:${item.contract_start_date}`;
-  const [draft, setDraft] = useLocalDraft(draftKey);
+  const [draft, setDraft, draftStorageFailed] = useLocalDraft(draftKey);
   const [busy, setBusy] = useState(false);
   const scoredCount = indicators.filter((i) => SCORE_OPTIONS.includes(draft.scores[i.id] ?? 0)).length;
   const allScored = indicators.length > 0 && indicators.length === item.indicator_ids.length && scoredCount === indicators.length;
@@ -114,7 +114,11 @@ function ContractSelfAssessmentForm({
         })),
         note: draft.overallNote.trim() || null,
       });
-      window.localStorage.removeItem(draftKey);
+      try {
+        window.localStorage.removeItem(draftKey);
+      } catch {
+        // Browser cleanup must not turn a successful server submission into an error.
+      }
       queryClient.setQueryData(["me", "self-assessment", "current", user?.id, user?.personnel_id], data);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["me", "self-assessment"] }),
@@ -141,7 +145,8 @@ function ContractSelfAssessmentForm({
           <span className="text-xs text-gray-600" role="status">{scoredCount.toLocaleString("fa-IR")} از {item.indicator_ids.length.toLocaleString("fa-IR")} شاخص تکمیل شده</span>
         </div>
         <progress className="mt-3 h-2 w-full accent-pulse-600" value={scoredCount} max={item.indicator_ids.length || 1} aria-label="پیشرفت خودارزیابی" />
-        <p className="mt-2 text-xs leading-6 text-gray-500">به هر شاخص از ۱ تا ۵ امتیاز بدهید. پاسخ‌های شما تا ثبت نهایی در همین مرورگر نگه داشته می‌شوند.</p>
+        <p className="mt-2 text-xs leading-6 text-gray-500">به هر شاخص از ۱ تا ۵ امتیاز بدهید. پیش‌نویس فقط در همین مرورگر و همین آدرس سامانه ذخیره می‌شود؛ در مرورگر یا دستگاه دیگر در دسترس نیست.</p>
+        {draftStorageFailed && <p role="alert" className="mt-2 text-sm text-red-700">پیش‌نویس در مرورگر ذخیره نشد. تا ثبت نهایی این صفحه را نبندید یا بازخوانی نکنید. فضای ذخیره‌سازی و مجوزهای مرورگر را بررسی کنید.</p>}
       </div>
       {ASSESSMENT_SECTIONS.map((section) => {
         const members = indicators.filter((indicator) => indicator.section === section.key);

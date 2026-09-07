@@ -53,14 +53,16 @@ def module_states(db: Session) -> dict[str, bool]:
     """
     stored = {row.key: row.enabled for row in db.scalars(select(ModuleSetting))}
     return {
-        module.key: stored.get(module.key, module.default_enabled)
+        module.key: False if module.locked else stored.get(module.key, module.default_enabled)
         for module in MODULES
     }
 
 
 def is_module_enabled(db: Session, key: str) -> bool:
+    module = MODULES_BY_KEY.get(key)
+    if module and module.locked:
+        return False
     row = db.get(ModuleSetting, key)
     if row is not None:
         return row.enabled
-    module = MODULES_BY_KEY.get(key)
     return module.default_enabled if module else True

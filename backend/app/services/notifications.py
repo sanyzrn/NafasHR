@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.models.enums import UserRole
 from app.models.evaluation import EvaluationRecord
 from app.models.notification import Notification
+from app.services.authorization import is_module_enabled
 
 
 def _queue_outbound(db: Session, notification: Notification) -> None:
@@ -39,6 +40,8 @@ def notify(
     evaluation_record_id: int | None = None,
     link: str | None = None,
 ) -> None:
+    if type_ == "evaluation_finalized_self" and not is_module_enabled(db, "employee_evaluation_visibility"):
+        return
     for user_id in set(user_ids):
         notification = Notification(
             user_id=user_id,
@@ -63,6 +66,8 @@ def notify_once(
 ) -> bool:
     """اگر همین کاربر در پنجره اخیر اعلانی با همین dedup_key گرفته باشد، دوباره نمی‌سازد.
     خروجی True یعنی اعلان جدید ساخته شد. برای sweep های تکرارشونده تا از اسپم جلوگیری شود."""
+    if type_ == "evaluation_finalized_self" and not is_module_enabled(db, "employee_evaluation_visibility"):
+        return False
     cutoff = datetime.now(UTC) - timedelta(days=within_days)
     exists = db.scalar(
         select(func.count())
@@ -170,7 +175,7 @@ def notify_for_workflow_action(db: Session, record: EvaluationRecord, action: st
             link=link,
         )
 
-    if action in ("ceo_finalize", "hr_finalize_direct_ceo"):
+    if action in ("ceo_finalize", "hr_finalize_direct_ceo") and is_module_enabled(db, "employee_evaluation_visibility"):
         # اگر خود کارمند حساب فعال دارد، نتیجه نهایی به او هم ابلاغ می‌شود («کارنامه من»)
         from app.models.user import User
 

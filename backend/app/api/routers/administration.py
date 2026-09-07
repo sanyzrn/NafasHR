@@ -246,6 +246,7 @@ def list_modules(
             label=module.label,
             description=module.description,
             enabled=states[module.key],
+            locked=module.locked,
         )
         for module in MODULES
     ]
@@ -266,6 +267,8 @@ def toggle_module(
     module = MODULES_BY_KEY.get(key)
     if module is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="چنین بخشی وجود ندارد")
+    if module.locked and payload.enabled:
+        raise HTTPException(status_code=403, detail="این بخش فعلاً غیرفعال است و امکان فعال‌سازی ندارد")
 
     row = db.get(ModuleSetting, key)
     was = row.enabled if row is not None else module.default_enabled
@@ -290,6 +293,7 @@ def toggle_module(
         label=module.label,
         description=module.description,
         enabled=payload.enabled,
+        locked=module.locked,
     )
 
 

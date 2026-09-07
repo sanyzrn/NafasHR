@@ -18,6 +18,7 @@ class ModuleDef:
     #: چه چیزی از دست می‌رود اگر خاموش شود — متن همان چیزی که در UI دیده می‌شود
     description: str
     default_enabled: bool
+    locked: bool = False
 
 
 MODULES: tuple[ModuleDef, ...] = (
@@ -47,24 +48,28 @@ MODULES: tuple[ModuleDef, ...] = (
         label="اعتراض به نتیجه",
         description="نمایش مسیر رسمی اعتراض کارمند به نتیجهٔ نهایی؛ این گزینه با نمایش نتایج کارمند معنا پیدا می‌کند.",
         default_enabled=False,
+        locked=True,
     ),
     ModuleDef(
         key="employee_overview_cards",
         label="کارت‌های خلاصهٔ کارمند",
         description="کارت‌های آماری بالای کارنامهٔ کارمند، مانند کارهای در انتظار و وضعیت کلی.",
         default_enabled=False,
+        locked=True,
     ),
     ModuleDef(
         key="employee_evaluation_visibility",
         label="نتیجه و وضعیت پروندهٔ کارمند",
         description="نمایش نتایج نهایی ارزیابی و اینکه پروندهٔ در جریان اکنون در کدام مرحله است.",
         default_enabled=False,
+        locked=True,
     ),
     ModuleDef(
         key="employee_result_acknowledgement",
         label="ثبت رؤیت نتیجه توسط کارمند",
         description="نمایش دکمه و وضعیت «نتیجه را دیدم» در کارنامهٔ کارمند.",
         default_enabled=False,
+        locked=True,
     ),
     ModuleDef(
         key="role_analytics",

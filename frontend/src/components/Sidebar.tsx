@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { APP_NAME, APP_NAME_FA } from "../appInfo";
 import { Tooltip } from "../ui/Tooltip";
 import { BrandMark } from "./Brand";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import type { NavItem } from "./nav";
 
 /** ناوبری کناری — ستونِ شناورِ سمت راست.
@@ -23,12 +24,14 @@ export function Sidebar({
   collapsed,
   onToggleCollapse,
   onNavigate,
+  mobile = false,
 }: {
   items: NavItem[];
   collapsed: boolean;
   onToggleCollapse: () => void;
   /** در کشوی موبایل، هر کلیک باید کشو را ببندد. */
   onNavigate?: () => void;
+  mobile?: boolean;
 }) {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
@@ -93,15 +96,14 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className="shrink-0 border-t border-gray-200 p-2">
-        <Tooltip label="باز کردن منو" enabled={collapsed}>
+      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-gray-200 p-2">
+        {mobile && <ThemeToggle />}
+        <Tooltip label={mobile ? "بستن منو" : collapsed ? "باز کردن منو" : "جمع کردن منو"}>
           <button
             type="button"
             onClick={onToggleCollapse}
-            aria-label={collapsed ? "باز کردن منو" : "جمع کردن منو"}
-            className={`flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 ${
-              collapsed ? "justify-center px-2" : "gap-3"
-            }`}
+            aria-label={mobile ? "بستن منو" : collapsed ? "باز کردن منو" : "جمع کردن منو"}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
             <svg
               viewBox="0 0 20 20"
@@ -116,7 +118,6 @@ export function Sidebar({
               <path d="M12 5l-5 5 5 5" />
               <path d="M16.5 4v12" />
             </svg>
-            {!collapsed && <span>جمع کردن منو</span>}
           </button>
         </Tooltip>
       </div>

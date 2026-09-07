@@ -34,6 +34,7 @@ from app.schemas.dashboard import (
     UnitStat,
 )
 from app.schemas.notification import ExpiringContract
+from app.services.authorization import is_module_enabled
 from app.services.org_unit import site_of, units_in_site
 from app.services.privacy import suppressed_avg
 from app.services.scoring_scheme import current_rules
@@ -572,6 +573,8 @@ def role_overview(
     اصلی خود یک نمای سریع از کارهای در انتظار و وضعیت پرونده‌هایش داشته باشد."""
     uid = current_user.id
     role = current_user.role
+    if role == UserRole.employee and not is_module_enabled(db, "employee_overview_cards"):
+        raise HTTPException(status_code=403, detail="کارت‌های خلاصهٔ کارمند فعلاً غیرفعال است")
     cards: list[RoleOverviewCard] = []
 
     if role == UserRole.unit_supervisor:

@@ -363,14 +363,11 @@ export function MyEvaluationsPanel() {
 }
 
 function LinkedMyEvaluationsPanel() {
-  const { user } = useAuth();
   const { moduleEnabled, loading: permissionsLoading } = usePermissions();
   // تا قبل از رسیدن تنظیمات، هیچ بخش اختیاری چشمک نمی‌زند. پیش‌فرض ماژول‌ها
   // برای این صفحه عمداً خاموش است، پس «نامعلوم» نباید به‌اشتباه «روشن» دیده شود.
   const showOverview = !permissionsLoading && moduleEnabled("employee_overview_cards");
-  const showEvaluationDetails = !permissionsLoading && (
-    moduleEnabled("employee_evaluation_visibility") || user?.role === "unit_supervisor"
-  );
+  const showEvaluationDetails = !permissionsLoading && moduleEnabled("employee_evaluation_visibility");
   const showSelfAssessment = !permissionsLoading && moduleEnabled("self_assessment");
   const showOpenCases = showEvaluationDetails;
   const showAcknowledgement =

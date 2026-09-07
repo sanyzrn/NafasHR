@@ -176,6 +176,7 @@ def _with_accounts(db: Session, rows: list[Personnel]) -> list[PersonnelRead]:
 @router.get("", response_model=PersonnelPage)
 def list_personnel(
     accessible_to_me: bool = False,
+    direct_reports_only: bool = False,
     q: str | None = None,
     status_filter: PersonnelStatus | None = Query(default=None, alias="status"),
     org_unit: str | None = None,
@@ -189,6 +190,16 @@ def list_personnel(
     current_user: CurrentUser = Depends(get_current_user),
 ) -> PersonnelPage:
     query = select(Personnel)
+    if direct_reports_only:
+        if current_user.role != UserRole.ceo:
+            raise HTTPException(status_code=403, detail="این فهرست مخصوص ارزیابی مستقیم مدیرعامل است")
+        query = query.where(Personnel.id.in_(
+            select(EvaluationAccess.personnel_id).where(
+                EvaluationAccess.ceo_user_id == current_user.id,
+                EvaluationAccess.unit_supervisor_user_id.is_(None),
+                EvaluationAccess.deputy_user_id.is_(None),
+            )
+        ))
     # نقش‌های غیر از HR فقط پرسنلی را می‌بینند که برایشان دسترسی ارزیابی تعریف شده؛
     # HR به کل فهرست پرسنل دسترسی دارد (طبق بخش ۴ سند مشخصات).
     can_manage_personnel = current_user.role == UserRole.hr or Capability.manage_personnel in capabilities_of(

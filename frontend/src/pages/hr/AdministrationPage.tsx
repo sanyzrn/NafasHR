@@ -35,6 +35,7 @@ interface ModuleState {
   label: string;
   description: string;
   enabled: boolean;
+  locked?: boolean;
 }
 
 /** برچسب فارسی هر مجوز، و — مهم‌تر — این‌که نداشتنش یعنی چه. */
@@ -350,6 +351,7 @@ function ModulesCard() {
   });
 
   async function toggle(module: ModuleState) {
+    if (module.locked) return;
     if (module.enabled) {
       const ok = await confirm({
         title: `خاموش کردن «${module.label}»؟`,
@@ -393,6 +395,7 @@ function ModulesCard() {
                 <p className="mt-0.5 text-xs leading-relaxed text-gray-500">
                   {module.description}
                 </p>
+                {module.locked && <p className="mt-1 text-xs text-gray-400">فعلاً غیرفعال — امکان فعال‌سازی ندارد</p>}
               </div>
               {/* سوییچ به‌جای تیک: چیزی که این‌جا عوض می‌شود یک *حالت* است
                   (این بخش روشن است یا خاموش)، نه یک انتخاب از فهرست. تیک برای
@@ -402,7 +405,7 @@ function ModulesCard() {
                 type="button"
                 role="switch"
                 aria-checked={module.enabled}
-                disabled={saving === module.key}
+                disabled={module.locked || saving === module.key}
                 onClick={() => toggle(module)}
                 aria-label={`فعال بودن ${module.label}`}
                 className={`relative flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${

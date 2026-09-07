@@ -55,7 +55,8 @@ from app.services.workflow import IS_OPEN_RECORD
 router = APIRouter(prefix="/api/me", tags=["me"])
 
 
-@router.get("/evaluations", response_model=MyEvaluationPage)
+@router.get("/evaluations", response_model=MyEvaluationPage,
+            dependencies=[Depends(require_module("employee_evaluation_visibility"))])
 def my_evaluations(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(require_own_personnel),
@@ -71,7 +72,8 @@ def my_evaluations(
     return MyEvaluationPage(total=total, items=[MyEvaluationRead.model_validate(r) for r in items])
 
 
-@router.get("/evaluations/open", response_model=list[MyOpenEvaluation])
+@router.get("/evaluations/open", response_model=list[MyOpenEvaluation],
+            dependencies=[Depends(require_module("employee_evaluation_visibility"))])
 def my_open_evaluation(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(require_own_personnel),
@@ -386,7 +388,8 @@ def _my_record_or_404(db: Session, evaluation_id: int, current_user: CurrentUser
     return record
 
 
-@router.post("/evaluations/{evaluation_id}/object", response_model=MyEvaluationRead)
+@router.post("/evaluations/{evaluation_id}/object", response_model=MyEvaluationRead,
+             dependencies=[Depends(require_module("objections"))])
 def file_objection(
     evaluation_id: int,
     payload: ObjectionRequest,
@@ -454,7 +457,8 @@ def file_objection(
     return record
 
 
-@router.post("/evaluations/{evaluation_id}/acknowledge", response_model=MyEvaluationRead)
+@router.post("/evaluations/{evaluation_id}/acknowledge", response_model=MyEvaluationRead,
+             dependencies=[Depends(require_module("employee_result_acknowledgement"))])
 def acknowledge_evaluation(
     evaluation_id: int,
     db: Session = Depends(get_db),

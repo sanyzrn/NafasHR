@@ -43,6 +43,7 @@ from app.schemas.evaluation import (
     SubmissionExtension,
 )
 from app.services.audit import log_event
+from app.services.authorization import is_module_enabled
 from app.services.documents import archive_final_pdf, archive_final_pdf_detached
 from app.services.evaluation import inactive_seat_labels, next_evaluation_code, validate_bonus
 from app.services.evaluation_window import ensure_open as ensure_submission_window_open
@@ -548,6 +549,8 @@ def list_evaluations(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ) -> EvaluationPage:
+    if current_user.role == UserRole.employee and not is_module_enabled(db, "employee_evaluation_visibility"):
+        raise HTTPException(status_code=403, detail="نمایش نتیجه برای کارمند فعلاً غیرفعال است")
     query = select(EvaluationRecord)
     # دامنهٔ دید، به‌صورت allowlist و نه زنجیرهٔ if/elif با پیش‌فرضِ باز.
     # نسخهٔ قبلی با `# hr می‌بیند همه را` تمام می‌شد، یعنی *هر* نقشی که در
